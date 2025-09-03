@@ -13,7 +13,7 @@ import gx
 
 ##################################################################################################################################
 
-VERSION = "GXAI v2.1.0-beta"
+VERSION = "GXAI v2.1.0"
 
 SCRIPT_PATH = os.path.abspath(__file__)
 SCRIPT_DIR = os.path.dirname(SCRIPT_PATH)
@@ -42,7 +42,7 @@ with open(os.path.join(ROOT_DIR, "app", "js", "script.js"), "r") as file:
     print("JS_SCRIPT loaded!")
     
 with open(os.path.join(ROOT_DIR, "app", "html", ".html"), "r") as file:
-    HTML_FILE = file.read()
+    HTML_FILE = file.read() # noqa
     print("HTML_FILE loaded!")
     
 def restart_ui():
@@ -222,7 +222,7 @@ with gr.Blocks(title=VERSION, theme=gr.themes.Soft(primary_hue="purple", seconda
             
     with gr.Tab("🤖AI Detector"):
         with gr.Row():
-            gr.Label("Analyze image")
+            gr.Label("Detect AI or Human images")
         with gr.Row():
             aid_input_single = gr.Image(width=200, height=400)
             aid_output_single = gr.Textbox(label="Result", placeholder="Press start to get result")
@@ -305,7 +305,7 @@ with gr.Blocks(title=VERSION, theme=gr.themes.Soft(primary_hue="purple", seconda
         with gr.Row():
             settings_use_proxy = gr.Checkbox(value=config.use_proxy, label="Enable using system proxy for connect to WebUI. NEED TO FULL RESTART (CLOSING CMD AND RUNNING .BAT)")
         with gr.Row():
-            json_files = gr.Label("Saving in [../settings/config.json]")
+            json_files = gr.Label("Saving in [../settings/config.json]") # noqa
             settings_save = gr.Button("🗃️ Save settings")
             settings_save_progress = gr.Textbox(label="Saving progress", placeholder="Your saving progress will be here")
         with gr.Row():

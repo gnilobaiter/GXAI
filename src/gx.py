@@ -74,7 +74,9 @@ def BgRemoverLite_Clear():
 ##################################################################################################################################
 
 def NSFW_Detector(detector_input):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model, processor = models.nsfw_ng_load()
+    model.to(device)
     
     nsfw = 0
     plain = 0
@@ -87,6 +89,7 @@ def NSFW_Detector(detector_input):
             with torch.no_grad():
                 image = Image.open(file).convert("RGB")
                 inputs = processor(images=image, return_tensors="pt")
+                inputs = {k: v.to(device) for k, v in inputs.items()}
                 outputs = model(**inputs)
                 logits = outputs.logits
 
@@ -128,9 +131,13 @@ def NSFWDetector_Clear():
 ##################################################################################################################################
 
 def nsfw_ng(file_nsfw_ng):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model, processor = models.nsfw_ng_load()
+    model.to(device)
+
     with torch.no_grad():
         inputs = processor(images=file_nsfw_ng, return_tensors="pt")
+        inputs = {k: v.to(device) for k, v in inputs.items()}
         outputs = model(**inputs)
         logits = outputs.logits
         if config.debug:
@@ -323,10 +330,6 @@ def process_batch_2(model, processor, batch_images, device):
 
     return nsfw_count, normal_count
 
-def process_frame(frame):
-    result_frame = frame
-    return result_frame
-
 def VideoAnalyzerBatch(video_dir, vbth_slider, threshold_Vspc_slider):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model, processor = models.nsfw_ng_load()
@@ -436,6 +439,7 @@ def VideoAnalyzerBatch_Clear():
 ##################################################################################################################################
 
 def PromptGenetator(prompt_input, pg_prompts, pg_max_length, randomize_temp):
+    device = 0 if torch.cuda.is_available() else -1
     tokenizer, model_tokinezer = models.tokenizer_load()
     prompt = prompt_input
     if randomize_temp is True:
@@ -443,7 +447,7 @@ def PromptGenetator(prompt_input, pg_prompts, pg_max_length, randomize_temp):
     elif randomize_temp is False:
         tempreture_pg = 0.7
 
-    nlp = pipeline('text-generation', model=model_tokinezer, tokenizer=tokenizer)
+    nlp = pipeline('text-generation', model=model_tokinezer, tokenizer=tokenizer, device=device)
     outs = nlp(prompt, 
                 max_length=pg_max_length, 
                 num_return_sequences=pg_prompts, 
