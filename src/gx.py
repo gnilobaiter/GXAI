@@ -19,9 +19,17 @@ from upscalers import clear_on_device_caches, upscale
 import config
 import models
 
+##################################################################################################################################
+
+SCRIPT_PATH = os.path.abspath(__file__)
+SRC_DIR = os.path.dirname(SCRIPT_PATH)
+ROOT_DIR = os.path.dirname(SRC_DIR)
+
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 for device in gpu_devices:
     tf.config.experimental.set_memory_growth(device, True)
+
+##################################################################################################################################
 
 def BgRemoverLite(inputs):
     try:
@@ -36,7 +44,7 @@ def BgRemoverLite(inputs):
 def BgRemoverLiteBatch(inputs):
     temp_dir = inputs
     for filename in tqdm(os.listdir(inputs)):
-        outputs = "outputs/rembg_outputs"
+        outputs = os.path.join(ROOT_DIR, "outputs", "rembg_outputs")
         inputs = os.path.abspath(temp_dir)
         try:
             inputs = os.path.join(inputs, filename)
@@ -49,15 +57,15 @@ def BgRemoverLiteBatch(inputs):
             gr.Error(f"Error: {e}")
             pass
         
-    outputs = config.current_directory + r"\outputs" + r"\rembg_outputs"
+    outputs = os.path.join(ROOT_DIR, "outputs", "rembg_outputs")
     
     CODC_clear(silent=True)
     return outputs
 
 def BgRemoverLite_Clear():
-    outputs_dir = os.path.join(config.current_directory, "outputs/rembg_outputs")
+    outputs_dir = os.path.join(ROOT_DIR, "outputs", "rembg_outputs")
     sh.rmtree(outputs_dir)
-    folder_path = "outputs/rembg_outputs"
+    folder_path = os.path.join(ROOT_DIR, "outputs", "rembg_outputs")
     os.makedirs(folder_path)
     file = open(f"{folder_path}/outputs will be here.txt", "w")
     file.close()
@@ -65,7 +73,7 @@ def BgRemoverLite_Clear():
 
 ##################################################################################################################################
 
-def NSFW_Detector(detector_input):         
+def NSFW_Detector(detector_input):
     model, processor = models.nsfw_ng_load()
     
     nsfw = 0
@@ -86,32 +94,32 @@ def NSFW_Detector(detector_input):
             predicted_class = model.config.id2label[predicted_label]
 
             if predicted_class == "normal":
-                sh.copyfile(file, f'./outputs/detector_outputs_plain/{file.split("/")[-1]}')
+                sh.copyfile(file, os.path.join(ROOT_DIR, 'outputs', 'detector_outputs_plain', file.split("/")[-1]))
                 plain += 1
             elif predicted_class == "nsfw":
-                sh.copyfile(file, f'./outputs/detector_outputs_nsfw/{file.split("/")[-1]}')
+                sh.copyfile(file, os.path.join(ROOT_DIR, 'outputs', 'detector_outputs_nsfw', file.split("/")[-1]))
                 nsfw += 1
         except Exception as e:
             gr.Error(f"Error: {e}")
             pass
 
     outputs = (
-        f"[{str(nsfw)}] NSFW: {os.path.abspath('./outputs/detector_outputs_nsfw')}\n"
-        f"[{str(plain)}] Plain: {os.path.abspath('./outputs/detector_outputs_plain')}"
+        f"[{str(nsfw)}] NSFW: {os.path.abspath(os.path.join(ROOT_DIR, 'outputs', 'detector_outputs_nsfw'))}\n"
+        f"[{str(plain)}] Plain: {os.path.abspath(os.path.join(ROOT_DIR, 'outputs', 'detector_outputs_plain'))}"
     )
     CODC_clear(silent=True)
     return outputs
 
 def NSFWDetector_Clear():
-    outputs_dir1 = os.path.join(config.current_directory, "outputs/detector_outputs_nsfw")
+    outputs_dir1 = os.path.join(ROOT_DIR, "outputs", "detector_outputs_nsfw")
     sh.rmtree(outputs_dir1)
-    outputs_dir2 = os.path.join(config.current_directory, "outputs/detector_outputs_plain")
+    outputs_dir2 = os.path.join(ROOT_DIR, "outputs", "detector_outputs_plain")
     sh.rmtree(outputs_dir2)
-    folder_path1 = "outputs/detector_outputs_nsfw"
+    folder_path1 = os.path.join(ROOT_DIR, "outputs", "detector_outputs_nsfw")
     os.makedirs(folder_path1)
     file = open(f"{folder_path1}/outputs will be here.txt", "w")
     file.close()
-    folder_path2 = "outputs/detector_outputs_plain"
+    folder_path2 = os.path.join(ROOT_DIR, "outputs", "detector_outputs_plain")
     os.makedirs(folder_path2)
     file = open(f"{folder_path2}/outputs will be here.txt", "w")
     file.close()
@@ -149,7 +157,7 @@ def Upscaler_2(upsc_image_input, scale_factor, model_ups):
     return upsc_image_output
 
 def Upscaler_batch(upsc_dir_input, scale_factor_batch, model_ups_batch):
-    output_dir = "outputs/upscaler_outputs"
+    output_dir = os.path.join(ROOT_DIR, "outputs", "upscaler_outputs")
     os.makedirs(output_dir, exist_ok=True)
     
     for filename in tqdm(os.listdir(upsc_dir_input)):
@@ -171,9 +179,9 @@ def Upscaler_batch(upsc_dir_input, scale_factor_batch, model_ups_batch):
     return output_dir
 
 def Upscaler_batch_Clear():
-    outputs_dir = os.path.join(config.current_directory, "outputs/upscaler_outputs")
+    outputs_dir = os.path.join(ROOT_DIR, "outputs", "upscaler_outputs")
     sh.rmtree(outputs_dir)
-    folder_path = "outputs/upscaler_outputs"
+    folder_path = os.path.join(ROOT_DIR, "outputs", "upscaler_outputs")
     os.makedirs(folder_path)
     file = open(f"{folder_path}/outputs will be here.txt", "w")
     file.close()
@@ -183,8 +191,9 @@ def Upscaler_batch_Clear():
 
 def ImageAnalyzer(file_spc, clip_checked, clip_chunk_size):
     img = Image.fromarray(file_spc, 'RGB')
-    img.save('tmp.png')
-    dir_img_fromarray = os.path.join(os.getcwd(), "tmp.png")
+    tmp_png_path = os.path.join(ROOT_DIR, 'tmp.png')
+    img.save(tmp_png_path)
+    dir_img_fromarray = tmp_png_path
     
     spc_output = ""
     
@@ -214,10 +223,8 @@ def ImageAnalyzer(file_spc, clip_checked, clip_chunk_size):
     spc_output += f"Sexy: {percentages['sexy']}%\n"
     spc_output += f"Neutral: {percentages['neutral']}%"
 
-    tmp_file = "tmp.png"
-    
     try:
-        os.remove(tmp_file)
+        os.remove(tmp_png_path)
     except FileNotFoundError as e:
         gr.Error(f"Error: {e}")
         pass
@@ -231,7 +238,9 @@ def ImageAnalyzer(file_spc, clip_checked, clip_chunk_size):
 ##################################################################################################################################
 
 def VideoAnalyzer(file_Vspc):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model, processor = models.nsfw_ng_load()
+    model.to(device)
     
     cap = cv2.VideoCapture(file_Vspc)
     
@@ -255,13 +264,13 @@ def VideoAnalyzer(file_Vspc):
             
             if len(batch_images) >= 16:
                 nsfw_count, normal_count, file_count = process_batch(
-                    model, processor, batch_images, nsfw_count, normal_count, file_count
+                    model, processor, batch_images, nsfw_count, normal_count, file_count, device
                 )
                 batch_images = []
     
         if batch_images:
             nsfw_count, normal_count, file_count = process_batch(
-                model, processor, batch_images, nsfw_count, normal_count, file_count
+                model, processor, batch_images, nsfw_count, normal_count, file_count, device
             )
     
     nsfw_percent = (nsfw_count / file_count) * 100 if file_count > 0 else 0
@@ -276,9 +285,10 @@ def VideoAnalyzer(file_Vspc):
     
     return Vspc_output
 
-def process_batch(model, processor, batch_images, nsfw_count, normal_count, file_count):
+def process_batch(model, processor, batch_images, nsfw_count, normal_count, file_count, device):
     with torch.no_grad():
         inputs = processor(images=batch_images, return_tensors="pt")
+        inputs = {k: v.to(device) for k, v in inputs.items()}
         outputs = model(**inputs)
         logits = outputs.logits
         
@@ -293,12 +303,13 @@ def process_batch(model, processor, batch_images, nsfw_count, normal_count, file
     
     return nsfw_count, normal_count, file_count
 
-def process_batch_2(model, processor, batch_images):
+def process_batch_2(model, processor, batch_images, device):
     nsfw_count = 0
     normal_count = 0
     
     with torch.no_grad():
         inputs = processor(images=batch_images, return_tensors="pt")
+        inputs = {k: v.to(device) for k, v in inputs.items()}
         outputs = model(**inputs)
         logits = outputs.logits
         predicted_labels = logits.argmax(-1)
@@ -313,19 +324,24 @@ def process_batch_2(model, processor, batch_images):
     return nsfw_count, normal_count
 
 def process_frame(frame):
-    result_frame = frame    
+    result_frame = frame
     return result_frame
 
-def VideoAnalyzerBatch(video_dir, vbth_slider, threshold_Vspc_slider):  
+def VideoAnalyzerBatch(video_dir, vbth_slider, threshold_Vspc_slider):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model, processor = models.nsfw_ng_load()
+    model.to(device)
+
     _nsfw = 0
     _plain = 0
-    output_dir = 'tmp'
+    output_dir = os.path.join(ROOT_DIR, 'tmp')
     os.makedirs(output_dir, exist_ok=True)
     
     video_files = os.listdir(video_dir)
     
     for dir_Vspc in tqdm(video_files, desc="Processing videos"):
+        nsfw_count = 0
+        normal_count = 0
         cap = cv2.VideoCapture(os.path.join(video_dir, dir_Vspc))
         frame_count = 0
         batch_images = []
@@ -350,28 +366,32 @@ def VideoAnalyzerBatch(video_dir, vbth_slider, threshold_Vspc_slider):
                 frame_count += 1
 
                 if len(batch_images) >= 16:
-                    nsfw_count, normal_count = process_batch_2(model, processor, batch_images)
+                    nsfw_c, normal_c = process_batch_2(model, processor, batch_images, device)
+                    nsfw_count += nsfw_c
+                    normal_count += normal_c
                     batch_images = []
 
             if batch_images:
-                nsfw_count, normal_count = process_batch_2(model, processor, batch_images)
+                nsfw_c, normal_c = process_batch_2(model, processor, batch_images, device)
+                nsfw_count += nsfw_c
+                normal_count += normal_c
         
         total_frames_classified = nsfw_count + normal_count
         nsfw_percent = (nsfw_count / total_frames_classified) * 100 if total_frames_classified > 0 else 0
         
         if nsfw_percent > threshold_Vspc_slider:
             video_path = os.path.join(video_dir, dir_Vspc)
-            sh.copy(video_path, 'outputs/video_analyze_nsfw')
+            sh.copy(video_path, os.path.join(ROOT_DIR, 'outputs', 'video_analyze_nsfw'))
             _nsfw += 1
         else:
             video_path = os.path.join(video_dir, dir_Vspc)
-            sh.copy(video_path, 'outputs/video_analyze_plain')
+            sh.copy(video_path, os.path.join(ROOT_DIR, 'outputs', 'video_analyze_plain'))
             _plain += 1
             
         cap.release()
         cv2.destroyAllWindows()
         
-        rm_tmp = os.path.join(config.current_directory, output_dir)
+        rm_tmp = os.path.join(ROOT_DIR, output_dir)
         sh.rmtree(rm_tmp)
         os.makedirs(output_dir, exist_ok=True)
 
@@ -380,31 +400,31 @@ def VideoAnalyzerBatch(video_dir, vbth_slider, threshold_Vspc_slider):
     return f"NSFW: {_nsfw} | Plain: {_plain}"
 
 def VideoAnalyzerBatch_Clear():
-    output_dir = 'tmp'
+    output_dir = os.path.join(ROOT_DIR, 'tmp')
     try:
-        outputs_dir1 = os.path.join(config.current_directory, "outputs/video_analyze_nsfw")
+        outputs_dir1 = os.path.join(ROOT_DIR, "outputs", "video_analyze_nsfw")
         sh.rmtree(outputs_dir1)
-        outputs_dir2 = os.path.join(config.current_directory, "outputs/video_analyze_plain")
+        outputs_dir2 = os.path.join(ROOT_DIR, "outputs", "video_analyze_plain")
         sh.rmtree(outputs_dir2)
-        outputs_dir3 = os.path.join(config.current_directory, "tmp")
+        outputs_dir3 = os.path.join(ROOT_DIR, "tmp")
         sh.rmtree(outputs_dir3)
-        folder_path1 = "outputs/video_analyze_nsfw"
+        folder_path1 = os.path.join(ROOT_DIR, "outputs", "video_analyze_nsfw")
         os.makedirs(folder_path1)
         file = open(f"{folder_path1}/outputs will be here.txt", "w")
         file.close()
-        folder_path2 = "outputs/video_analyze_plain"
+        folder_path2 = os.path.join(ROOT_DIR, "outputs", "video_analyze_plain")
         os.makedirs(folder_path2)
         file = open(f"{folder_path2}/outputs will be here.txt", "w")
         file.close()
-        rm_tmp = os.path.join(config.current_directory, output_dir)
+        rm_tmp = os.path.join(ROOT_DIR, output_dir)
         sh.rmtree(rm_tmp)
     except (PermissionError, FileNotFoundError, FileExistsError, Exception):
         try:
-            folder_path1 = "outputs/video_analyze_nsfw"
+            folder_path1 = os.path.join(ROOT_DIR, "outputs", "video_analyze_nsfw")
             os.makedirs(folder_path1)
             file = open(f"{folder_path1}/outputs will be here.txt", "w")
             file.close()
-            folder_path2 = "outputs/video_analyze_plain"
+            folder_path2 = os.path.join(ROOT_DIR, "outputs", "video_analyze_plain")
             os.makedirs(folder_path2)
             file = open(f"{folder_path2}/outputs will be here.txt", "w")
             file.close()
@@ -486,8 +506,8 @@ def AiDetector_batch(aid_input_batch):
     if config.debug:
         print(f"Working in: {aid_input_batch}")
 
-    aid_ai_dir = os.path.join(config.current_directory, "outputs/aid_ai")
-    aid_human_dir = os.path.join(config.current_directory, "outputs/aid_human")
+    aid_ai_dir = os.path.join(ROOT_DIR, "outputs", "aid_ai")
+    aid_human_dir = os.path.join(ROOT_DIR, "outputs", "aid_human")
     
     if not os.path.exists(aid_ai_dir):
         os.makedirs(aid_ai_dir)
@@ -524,15 +544,15 @@ def AiDetector_batch(aid_input_batch):
     return aid_output_batch
 
 def AID_Clear():
-    outputs_dir1 = os.path.join(config.current_directory, "outputs/aid_ai")
+    outputs_dir1 = os.path.join(ROOT_DIR, "outputs", "aid_ai")
     sh.rmtree(outputs_dir1)
-    outputs_dir2 = os.path.join(config.current_directory, "outputs/aid_human")
+    outputs_dir2 = os.path.join(ROOT_DIR, "outputs", "aid_human")
     sh.rmtree(outputs_dir2)
-    folder_path1 = "outputs/aid_ai"
+    folder_path1 = os.path.join(ROOT_DIR, "outputs", "aid_ai")
     os.makedirs(folder_path1)
     file = open(f"{folder_path1}/outputs will be here.txt", "w")
     file.close()
-    folder_path2 = "outputs/aid_human"
+    folder_path2 = os.path.join(ROOT_DIR, "outputs", "aid_human")
     os.makedirs(folder_path2)
     file = open(f"{folder_path2}/outputs will be here.txt", "w")
     file.close()
@@ -542,10 +562,11 @@ def AID_Clear():
 
 def silero_tts(tts_input, tts_lang, tts_speakers, tts_rate):
     tts_model = models.silero_tts_load(localization=tts_lang)
-    tts_model.save_wav(text=tts_input, speaker=tts_speakers, sample_rate=tts_rate)
+    temp_wav_path = os.path.join(ROOT_DIR, 'test.wav')
+    tts_model.save_wav(text=tts_input, speaker=tts_speakers, sample_rate=tts_rate, audio_path=temp_wav_path)
     
-    src_path = 'test.wav'
-    dest_dir = 'outputs/tts'
+    src_path = temp_wav_path
+    dest_dir = os.path.join(ROOT_DIR, 'outputs', 'tts')
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir)
     current_time = datetime.now().strftime("%d.%m.%y_%H-%M")
@@ -559,9 +580,9 @@ def silero_tts(tts_input, tts_lang, tts_speakers, tts_rate):
     return wav_file
 
 def tts_clear():
-    outputs_dir1 = os.path.join(config.current_directory, "outputs/tts")
+    outputs_dir1 = os.path.join(ROOT_DIR, "outputs", "tts")
     sh.rmtree(outputs_dir1)
-    folder_path1 = "outputs/tts"
+    folder_path1 = os.path.join(ROOT_DIR, "outputs", "tts")
     os.makedirs(folder_path1)
     file = open(f"{folder_path1}/outputs will be here.txt", "w")
     file.close()

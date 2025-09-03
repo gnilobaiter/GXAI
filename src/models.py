@@ -14,7 +14,13 @@ from transformers import (
 )
 
 import config
-from config import current_directory
+
+##################################################################################################################################
+
+SCRIPT_PATH = os.path.abspath(__file__)
+SCRIPT_DIR = os.path.dirname(SCRIPT_PATH)
+ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+MODELS_DIR = os.path.join(ROOT_DIR, "models")
 
 modelname = "nsfw_mobilenet2.224x224.h5"
 url = "https://sosal52.ru/nsfw_mobilenet2.224x224.h5"
@@ -22,14 +28,14 @@ url = "https://sosal52.ru/nsfw_mobilenet2.224x224.h5"
 modelname_h5 = "model_2.0.h5"
 url_h5 = "https://sosal52.ru/model_2.0.h5"
 
-models_directory = os.path.join(current_directory, "models")
+##################################################################################################################################
 
-if not os.path.exists(models_directory):
-    os.makedirs(models_directory)
+if not os.path.exists(MODELS_DIR):
+    os.makedirs(MODELS_DIR)
 
 def check_file(filename):
-    file_path = os.path.join(models_directory, filename)
-    files_in_directory = os.listdir(models_directory)
+    file_path = os.path.join(MODELS_DIR, filename)
+    files_in_directory = os.listdir(MODELS_DIR)
 
     if filename in files_in_directory:
         if config.debug: 
@@ -40,8 +46,8 @@ def check_file(filename):
         urllib.request.urlretrieve(url, file_path)
 
 def checkfile_h5(filename):
-    file_path = os.path.join(models_directory, filename)
-    files_in_directory = os.listdir(models_directory)
+    file_path = os.path.join(MODELS_DIR, filename)
+    files_in_directory = os.listdir(MODELS_DIR)
 
     if filename in files_in_directory:
         if config.debug:
@@ -56,7 +62,7 @@ def nsfw_load():
         if config.debug:
             gr.Info("Loading NSFW model...")
         check_file(modelname)
-        model_nsfw = predict.load_model("models/nsfw_mobilenet2.224x224.h5")
+        model_nsfw = predict.load_model(os.path.join(MODELS_DIR, "nsfw_mobilenet2.224x224.h5"))
     except NameError:
         gr.Error("Error in nsfw_load!")
     return model_nsfw
@@ -92,7 +98,7 @@ def h5_load():
         if config.debug:
             gr.Info("Loading H5 model...")
         checkfile_h5(modelname_h5)
-        model_h5 = load_model('models/model_2.0.h5')
+        model_h5 = load_model(os.path.join(MODELS_DIR, 'model_2.0.h5'))
     except NameError:
         gr.Error("Error in h5_load!")
     return model_h5
@@ -116,10 +122,10 @@ def silero_tts_load(localization):
         torch.set_num_threads(4)
         
         if localization == "ru":
-            local_file = os.path.join(models_directory, 'v4_ru.pt')
+            local_file = os.path.join(MODELS_DIR, 'v4_ru.pt')
             url = 'https://models.silero.ai/models/tts/ru/v4_ru.pt'
         elif localization == "en":
-            local_file = os.path.join(models_directory, 'v3_en.pt')
+            local_file = os.path.join(MODELS_DIR, 'v3_en.pt')
             url = 'https://models.silero.ai/models/tts/en/v3_en.pt'
         else:
             raise ValueError("Unsupported localization")

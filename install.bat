@@ -2,12 +2,11 @@
 
 git pull
 
-set PYTHON=py -3.10
-set VENV_DIR=%~dp0venv
+set VENV_DIR=%~dp0.venv
 
 mkdir tmp 2>NUL
 
-%PYTHON% -m venv "%VENV_DIR%"
+python -m venv "%VENV_DIR%"
 if %ERRORLEVEL% neq 0 (
     echo Unable to create venv
     pause
@@ -16,7 +15,7 @@ if %ERRORLEVEL% neq 0 (
 
 if not exist "%VENV_DIR%\Scripts\python.exe" (
     echo Creating venv in directory %VENV_DIR%
-    %PYTHON% -m venv "%VENV_DIR%"
+    python -m venv "%VENV_DIR%"
     if %ERRORLEVEL% neq 0 (
         echo Unable to create venv
         pause
@@ -29,12 +28,12 @@ set PYTHON=%VENV_DIR%\Scripts\python.exe
 call "%VENV_DIR%\Scripts\activate"
 
 echo Installing pip:
-%PYTHON% -m pip install pip==24.0
+python -m pip install pip==24.0
 echo Installing pip-tools:
-%PYTHON% -m pip install pip-tools
+python -m pip install pip-tools
 if not exist requirements.txt (
     echo Compiling requirements:
-    %PYTHON% -m piptools compile requirements.in
+    python -m piptools compile requirements.in
 ) else (
     echo --------------------------------------------------------------------
     echo ---!!! requirements.txt already exists, skipping compilation. !!!---
@@ -43,9 +42,7 @@ if not exist requirements.txt (
 )
 
 echo Installing requirements:
-%PYTHON% -m pip install -r requirements.txt
-echo Installing torch:
-%PYTHON% -m pip install torch torchvision==0.16.2 torchaudio --index-url https://download.pytorch.org/whl/cu121
+python -m pip install -r requirements.txt
 
 echo Running run.bat:
 call run.bat

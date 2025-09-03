@@ -11,6 +11,14 @@ import config
 import models
 import gx
 
+##################################################################################################################################
+
+VERSION = "GXAI v2.1.0-beta"
+
+SCRIPT_PATH = os.path.abspath(__file__)
+SCRIPT_DIR = os.path.dirname(SCRIPT_PATH)
+ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+
 if config.use_proxy is False:
     os.environ["NO_PROXY"] = "localhost,127.0.0.1,::1"
     os.environ["HTTP_PROXY"] = ""
@@ -18,27 +26,22 @@ if config.use_proxy is False:
 
 ##################################################################################################################################
 
-VERSION = "GXAI v2.1.0-alpha"
-
-##################################################################################################################################
-
 print(f"Initializing {VERSION} launch...")
-
 print("")
 
-with open("app/css/.css", "r") as file:
+with open(os.path.join(ROOT_DIR, "app", "css", ".css"), "r") as file:
     CSS = file.read()
     print("CSS loaded!")
     
-with open("app/js/preloader.js", "r") as file:
+with open(os.path.join(ROOT_DIR, "app", "js", "preloader.js"), "r") as file:
     JS_SCRIPT_PRELOADER = file.read()
     print("JS_SCRIPT_PRELOADER loaded!")
 
-with open("app/js/script.js", "r") as file:
+with open(os.path.join(ROOT_DIR, "app", "js", "script.js"), "r") as file:
     JS_SCRIPT = file.read()
     print("JS_SCRIPT loaded!")
     
-with open("app/html/.html", "r") as file:
+with open(os.path.join(ROOT_DIR, "app", "html", ".html"), "r") as file:
     HTML_FILE = file.read()
     print("HTML_FILE loaded!")
     
@@ -260,32 +263,32 @@ with gr.Blocks(title=VERSION, theme=gr.themes.Soft(primary_hue="purple", seconda
         with gr.Row():
             gr.Label("Rembg")
         with gr.Row():
-            rembg_outputs = "outputs/rembg_outputs"
+            rembg_outputs = os.path.join(ROOT_DIR, "outputs", "rembg_outputs")
             gallery_rembg_outputs = gr.Gallery(value=LIFF(rembg_outputs), format="png", interactive=False, columns=8, container=False)
         with gr.Row():
             gr.Label("Upscaler")
         with gr.Row():
-            upscaler_outputs = "outputs/upscaler_outputs"
+            upscaler_outputs = os.path.join(ROOT_DIR, "outputs", "upscaler_outputs")
             gallery_upscaler_outputs = gr.Gallery(value=LIFF(upscaler_outputs), format="png", interactive=False, columns=8, container=False)
         with gr.Row():
             gr.Label("Analyzer - NSFW")
         with gr.Row():
-            detector_outputs_nsfw = "outputs/detector_outputs_nsfw"
+            detector_outputs_nsfw = os.path.join(ROOT_DIR, "outputs", "detector_outputs_nsfw")
             gallery_detector_outputs_nsfw = gr.Gallery(value=LIFF(detector_outputs_nsfw), format="png", interactive=False, columns=8, container=False)
         with gr.Row():
             gr.Label("Analyzer - PLAIN")
         with gr.Row():
-            detector_outputs_plain = "outputs/detector_outputs_plain"
+            detector_outputs_plain = os.path.join(ROOT_DIR, "outputs", "detector_outputs_plain")
             gallery_detector_outputs_plain = gr.Gallery(value=LIFF(detector_outputs_plain), format="png", interactive=False, columns=8, container=False)
         with gr.Row():
             gr.Label("AI Detector - AI")
         with gr.Row():
-            aid_ai = "outputs/aid_ai"
+            aid_ai = os.path.join(ROOT_DIR, "outputs", "aid_ai")
             gallery_aid_ai = gr.Gallery(value=LIFF(aid_ai), format="png", interactive=False, columns=8, container=False)
         with gr.Row():
             gr.Label("AI Detector - HUMAN")
         with gr.Row():
-            aid_human = "outputs/aid_human"
+            aid_human = os.path.join(ROOT_DIR, "outputs", "aid_human")
             gallery_aid_human = gr.Gallery(value=LIFF(aid_human), format="png", interactive=False, columns=8, container=False)
             
 ##################################################################################################################################
